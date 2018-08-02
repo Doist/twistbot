@@ -13,6 +13,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/artyom/httpflags"
@@ -129,17 +130,26 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	for _, fn := range h.rules {
-		if fn(r.Context(), w, msg) {
+	ww := &trackedResponseWriter{ResponseWriter: w}
+	var i int
+	var fn Rule
+	for i, fn = range h.rules {
+		if ww.dirty() {
+			panic(fmt.Sprintf("twistbot: http.ResponseWriter was already used by rule #%d", i))
+		}
+		if fn(r.Context(), ww, msg) {
 			return
 		}
 	}
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	if ww.dirty() {
+		panic(fmt.Sprintf("twistbot: http.ResponseWriter was already used by rule #%d", i))
+	}
+	ww.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	switch h.Usage {
 	case "":
-		fmt.Fprintln(w, DefaultUsage)
+		fmt.Fprintln(ww, DefaultUsage)
 	default:
-		fmt.Fprintln(w, h.Usage)
+		fmt.Fprintln(ww, h.Usage)
 	}
 }
 
@@ -235,3 +245,27 @@ func randomString() string {
 	}
 	return hex.EncodeToString(b)
 }
+
+// trackedResponseWriter wraps http.ResponseWriter and tracks whether
+// WriteHeader or Write were called
+type trackedResponseWriter struct {
+	http.ResponseWriter
+	once sync.Once
+	used bool // true if WriteHeader or Write was already called
+}
+
+func (tr *trackedResponseWriter) WriteHeader(statusCode int) {
+	tr.mark()
+	tr.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (tr *trackedResponseWriter) Write(b []byte) (int, error) {
+	tr.mark()
+	return tr.ResponseWriter.Write(b)
+}
+
+func (tr *trackedResponseWriter) mark() { tr.once.Do(func() { tr.used = true }) }
+
+// dirty returns true if WriteHeader or Write methods were called or if any
+// headers were set
+func (tr *trackedResponseWriter) dirty() bool { return tr.used || len(tr.Header()) != 0 }
