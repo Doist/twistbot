@@ -70,6 +70,9 @@ func (m Message) ReplyDeadline() time.Time { return time.Unix(m.TTL, 0) }
 
 // Reply sends asynchronous reply to a given Message. It automatically takes
 // into account reply deadline. If client is nil, http.DefaultClient is used.
+//
+// Attachments are zero or more opaque attachment object, see Uploader
+// documentation on how to upload file.
 func (msg Message) Reply(ctx context.Context, client *http.Client, text string, attachments ...json.RawMessage) error {
 	if text == "" {
 		return errors.New("reply cannot be empty")
@@ -188,7 +191,8 @@ type Uploader struct {
 }
 
 // Upload uploads data read from r under given name and returns opaque json
-// object identifying uploaded object.
+// object describing uploaded object. It can then be used to describe attachment
+// when replying to message.
 func (upl *Uploader) Upload(ctx context.Context, r io.Reader, name string) (uploadInfo json.RawMessage, err error) {
 	pr, pw := io.Pipe()
 	defer pr.Close()
