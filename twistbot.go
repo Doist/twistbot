@@ -215,7 +215,7 @@ func (upl *Uploader) Upload(ctx context.Context, r io.Reader, name string) (uplo
 	})
 	group.Go(func() error {
 		defer pr.Close()
-		req, err := http.NewRequest(http.MethodPost, "https://api.twistapp.com/api/v2/attachments/upload", pr)
+		req, err := http.NewRequest(http.MethodPost, "https://api.twistapp.com/api/v3/attachments/upload", pr)
 		if err != nil {
 			return err
 		}
