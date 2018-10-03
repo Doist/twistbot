@@ -138,7 +138,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var fn Rule
 	for i, fn = range h.rules {
 		if ww.dirty() {
-			panic(fmt.Sprintf("twistbot: http.ResponseWriter was already used by rule #%d", i))
+			panic(fmt.Sprintf("twistbot: http.ResponseWriter was already used by rule #%d", i-1))
 		}
 		switch err := fn(r.Context(), ww, msg); err {
 		case nil:
