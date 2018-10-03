@@ -31,10 +31,10 @@ func run(addr, token string) error {
 	return http.ListenAndServe(addr, handler)
 }
 
-func greeter(ctx context.Context, w http.ResponseWriter, msg twistbot.Message) bool {
+func greeter(ctx context.Context, w http.ResponseWriter, msg twistbot.Message) error {
 	if !strings.HasPrefix(msg.Text, "Hello") {
-		return false
+		return twistbot.SkipRule
 	}
 	fmt.Fprintf(w, "Hello to you as well, %s!\n", msg.UserName)
-	return true
+	return nil
 }

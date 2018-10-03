@@ -140,7 +140,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if ww.dirty() {
 			panic(fmt.Sprintf("twistbot: http.ResponseWriter was already used by rule #%d", i))
 		}
-		if fn(r.Context(), ww, msg) {
+		switch err := fn(r.Context(), ww, msg); err {
+		case nil:
+			return
+		case SkipRule:
+			continue
+		default:
+			logFunc(r)("rule #%d: %v", i, err)
+			if !ww.dirty() {
+				http.Error(ww, http.StatusText(http.StatusInternalServerError),
+					http.StatusInternalServerError)
+			}
 			return
 		}
 	}
@@ -166,9 +176,11 @@ func (h *Handler) AddRule(rule Rule) {
 }
 
 // Rule is a function processing incoming message and replying on it. If rule
-// doesn't know how to process message, it must return false without touching
+// doesn't know how to process message, it must return SkipRule without touching
 // ResponseWriter. If rule successfully processed message, it must reply with
-// true to stop further processing.
+// nil to stop further processing; if rule replies with error, this error is
+// logged to http.Server.ErrorLog and handler replies with 500 status code when
+// appropriate (if ResponseWriter was not used yet).
 //
 // Context passed is the one from incoming http.Request; if rule needs to do
 // some background processing and reply asynchronously, it should create new
@@ -176,10 +188,14 @@ func (h *Handler) AddRule(rule Rule) {
 //
 // If function decides to reply right away, reply should be written plaintext to
 // provided ResponseWriter. It's valid to not reply anything and just return
-// true. Function may decide to do a follow-up reply as a result of some
+// nil. Function may decide to do a follow-up reply as a result of some
 // background asynchronous operation. To do this, use Message.Reply method that
 // posts reply to Message.AsyncReplyURL.
-type Rule func(context.Context, http.ResponseWriter, Message) bool
+type Rule func(context.Context, http.ResponseWriter, Message) error
+
+// SkipDir is used as a return value from Rules to indicate that rule must be
+// skipped.
+var SkipRule = errors.New("skip rule")
 
 // Uploader uploads files to Twist as attachments.
 type Uploader struct {
@@ -273,3 +289,13 @@ func (tr *trackedResponseWriter) mark() { tr.once.Do(func() { tr.used = true }) 
 // dirty returns true if WriteHeader or Write methods were called or if any
 // headers were set
 func (tr *trackedResponseWriter) dirty() bool { return tr.used || len(tr.Header()) != 0 }
+
+// logFunc returns Printf-like function from http.Request which logs to
+// associated http.Server.ErrorLog, if it's non-nil, or is noop otherwise.
+func logFunc(r *http.Request) func(format string, v ...interface{}) {
+	srv, ok := r.Context().Value(http.ServerContextKey).(*http.Server)
+	if ok && srv.ErrorLog != nil {
+		return srv.ErrorLog.Printf
+	}
+	return func(string, ...interface{}) {}
+}
