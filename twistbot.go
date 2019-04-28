@@ -47,6 +47,9 @@ type Message struct {
 	// would be rejected.
 	TTL int64 `flag:"url_ttl"`
 
+	// Workspace id
+	Workspace uint64 `flag:"workspace_id"`
+
 	// UserID is the id of message author
 	UserID uint64 `flag:"user_id"`
 
