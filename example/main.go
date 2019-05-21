@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/artyom/twistbot"
+	"github.com/Doist/twistbot"
 )
 
 func main() {

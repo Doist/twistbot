@@ -1,4 +1,4 @@
-module github.com/artyom/twistbot
+module github.com/Doist/twistbot
 
 require (
 	github.com/artyom/httpflags v1.1.1
