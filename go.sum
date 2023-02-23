@@ -2,7 +2,7 @@ github.com/artyom/autoflags v1.0.0 h1:9/SBa8wl1uYhvQWTvCeHM7k7bNBN0drDt9AQaoJd0y
 github.com/artyom/autoflags v1.0.0/go.mod h1:Th9KgAVvFcYp7t8b//Pu21xHjExLpzr4SXCbwVbHL7Y=
 github.com/artyom/httpflags v1.1.1 h1:jFEBSOolZ8J3sRx2473y/TbgQMgd9wJszGKmoMFgqUs=
 github.com/artyom/httpflags v1.1.1/go.mod h1:hipXJiUYR/L6Ny3KQkq4R88n76Wm62boW4dCvG0Hzvw=
-golang.org/x/net v0.0.0-20180731172858-49c15d80dfbc h1:fxZeP24od5lQwTpFLCU8QkWPRbntiOgNkcTByEnKbbo=
-golang.org/x/net v0.0.0-20180731172858-49c15d80dfbc/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
+golang.org/x/net v0.7.0 h1:rJrUqqhjsgNp7KqAIc25s9pZnjU7TUcSY7HcVZjdn1g=
+golang.org/x/net v0.7.0/go.mod h1:2Tu9+aMcznHK/AK1HMvgo6xiTLG5rD5rZLDS+rp2Bjs=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f h1:wMNYb4v58l5UBM7MYRLPG6ZhfOqbKu7X5eyFl8ZhKvA=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
